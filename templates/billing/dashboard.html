@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2>AWS Billing Dashboard</h2>
+
+    <hr>
+
+    <div class="row">
+
+        <div class="col-md-4">
+            <div class="card shadow p-3">
+                <h5>Current Month Cost</h5>
+                <h2>₹{{ total }}</h2>
+                <hr>
+
+{% if error %}
+
+<div class="alert alert-danger">
+    {{ error }}
+</div>
+
+{% endif %}
+
+<h4>AWS Service Costs</h4>
+
+<table class="table table-striped">
+
+    <thead class="table-dark">
+        <tr>
+            <th>Service</th>
+            <th>Cost (USD)</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+    {% for s in services %}
+
+    <tr>
+        <td>{{ s.service }}</td>
+        <td>${{ s.cost }}</td>
+    </tr>
+
+    {% empty %}
+
+    <tr>
+        <td colspan="2">
+            No billing data found.
+        </td>
+    </tr>
+
+    {% endfor %}
+
+    </tbody>
+
+</table>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

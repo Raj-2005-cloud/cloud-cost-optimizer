@@ -1,0 +1,25 @@
+body{
+    background:#f5f7fb;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+}
+
+.card:hover{
+    transform:translateY(-4px);
+    transition:.3s;
+}
+
+table{
+    background:white;
+}
+
+h2{
+    font-weight:700;
+}
+
+canvas{
+    max-height:350px;
+}

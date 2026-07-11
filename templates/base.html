@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Cloud Cost Optimizer</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+
+<body>
+
+<div class="d-flex">
+
+<div class="bg-dark text-white p-3 vh-100" style="width:260px;">
+
+<h3>☁️ Cloud Optimizer</h3>
+
+<hr>
+
+<a href="/dashboard/" class="text-white d-block mb-3 text-decoration-none">
+<i class="bi bi-house"></i> Dashboard
+</a>
+
+<a href="/analytics/" class="text-white d-block mb-3 text-decoration-none">
+<i class="bi bi-graph-up"></i> Analytics
+</a>
+
+<a href="/scanner/ec2/" class="text-white d-block mb-3 text-decoration-none">
+<i class="bi bi-cpu"></i> EC2
+</a>
+
+<a href="/scanner/s3/" class="text-white d-block mb-3 text-decoration-none">
+<i class="bi bi-hdd-network"></i> S3
+</a>
+
+<a href="/scanner/ebs/" class="text-white d-block mb-3 text-decoration-none">
+<i class="bi bi-device-hdd"></i> EBS
+</a>
+
+<a href="/scanner/rds/" class="text-white d-block mb-3 text-decoration-none">
+<i class="bi bi-database"></i> RDS
+</a>
+
+<a href="/billing/" class="text-white d-block mb-3 text-decoration-none">
+<i class="bi bi-cash-stack"></i> Billing
+</a>
+
+<hr>
+
+<a href="/logout/" class="btn btn-danger w-100">
+Logout
+</a>
+
+</div>
+
+<div class="flex-grow-1 p-4">
+
+{% block content %}
+{% endblock %}
+
+</div>
+
+</div>
+
+</body>
+
+</html>

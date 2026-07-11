@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>EBS Volumes</h2>
+
+<table class="table table-striped">
+
+<thead class="table-dark">
+<tr>
+    <th>Volume ID</th>
+    <th>Size (GB)</th>
+    <th>Type</th>
+    <th>Status</th>
+    <th>Availability Zone</th>
+    <th>Attached</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for v in volumes %}
+
+<tr>
+
+<td>{{ v.id }}</td>
+<td>{{ v.size }}</td>
+<td>{{ v.type }}</td>
+<td>{{ v.state }}</td>
+<td>{{ v.az }}</td>
+
+<td>
+
+{% if v.attached %}
+<span class="badge bg-success">Yes</span>
+{% else %}
+<span class="badge bg-danger">No</span>
+{% endif %}
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="6">No Volumes Found</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h1>Welcome {{ request.user.username }} 👋</h1>
+
+    <hr>
+
+    <div class="card shadow p-4">
+
+        <h3>Cloud Cost Optimizer Dashboard</h3>
+
+        {% if aws_account %}
+
+            <div class="alert alert-success mt-3">
+                <h5>✅ AWS Account Connected</h5>
+
+                <p><strong>Region:</strong> {{ aws_account.region }}</p>
+                      <a href="{% url 'scan_ec2' %}" class="btn btn-primary">
+                          Scan EC2
+                       </a>
+                       <a href="{% url 'scan_s3' %}" class="btn btn-warning">
+                          Scan S3
+                        </a>
+                        <a href="{% url 'scan_ebs' %}" class="btn btn-info">
+                          Scan EBS
+                         </a>
+                         <a href="{% url 'scan_rds' %}" class="btn btn-warning">
+                            Scan RDS
+                         </a>
+                         <a href="{% url 'billing' %}" class="btn btn-dark">
+                          AWS Cost Explorer
+                          </a>
+                          <a href="{% url 'analytics' %}" class="btn btn-success">
+                          Analytics Dashboard
+                            </a>
+            </div>
+
+        {% else %}
+
+            <p>Your AWS account is not connected yet.</p>
+
+            <a href="{% url 'connect_aws' %}" class="btn btn-success">
+                Connect AWS
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

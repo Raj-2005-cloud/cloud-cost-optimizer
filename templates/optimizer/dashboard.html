@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="mb-4">Optimization Recommendations</h2>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h3>Total Potential Savings</h3>
+        <h1 class="text-success">₹{{ total }}</h1>
+    </div>
+</div>
+
+<table class="table table-bordered table-hover">
+
+<thead class="table-dark">
+<tr>
+    <th>Service</th>
+    <th>Resource</th>
+    <th>Recommendation</th>
+    <th>Savings</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for r in recommendations %}
+
+<tr>
+    <td>{{ r.service }}</td>
+    <td>{{ r.resource }}</td>
+    <td>
+
+{% if r.severity == "success" %}
+<span class="badge bg-success">
+    {{ r.recommendation }}
+</span>
+
+{% elif r.severity == "warning" %}
+<span class="badge bg-warning text-dark">
+    {{ r.recommendation }}
+</span>
+
+{% else %}
+<span class="badge bg-info">
+    {{ r.recommendation }}
+</span>
+
+{% endif %}
+
+</td>
+    <td>₹{{ r.savings }}</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endblock %}

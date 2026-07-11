@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2 class="mb-4">Cloud Analytics Dashboard</h2>
+
+<div class="row">
+
+<div class="col-md-3">
+<div class="card shadow text-center">
+<div class="card-body">
+<h6>Total AWS Cost</h6>
+<h2>${{ total_cost }}</h2>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow text-center">
+<div class="card-body">
+<h6>Total Resources</h6>
+<h2>{{ total_resources }}</h2>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow text-center">
+<div class="card-body">
+<h6>Potential Savings</h6>
+<h2>${{ savings }}</h2>
+</div>
+</div>
+</div>
+
+<div class="col-md-3">
+<div class="card shadow text-center">
+<div class="card-body">
+<h6>Optimization Score</h6>
+<h2>{{ score }}/100</h2>
+</div>
+</div>
+</div>
+
+</div>
+
+<hr class="my-4">
+
+<div class="row">
+
+<div class="col-md-6">
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<h5>Cost By Service</h5>
+
+<canvas id="pieChart"></canvas>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-6">
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<h5>Monthly Trend</h5>
+
+<canvas id="lineChart"></canvas>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<hr class="my-4">
+
+<div class="card shadow">
+
+<div class="card-header bg-dark text-white">
+Top Recommendations
+</div>
+
+<div class="card-body">
+
+<table class="table">
+
+<thead>
+
+<tr>
+<th>Service</th>
+<th>Recommendation</th>
+<th>Savings</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for r in recommendations %}
+
+<tr>
+
+<td>{{ r.service }}</td>
+
+<td>{{ r.text }}</td>
+
+<td>${{ r.savings }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+new Chart(document.getElementById("pieChart"),{
+
+type:"pie",
+
+data:{
+
+labels:{{ pie_labels|safe }},
+
+datasets:[{
+
+data:{{ pie_values|safe }}
+
+}]
+
+}
+
+});
+
+new Chart(document.getElementById("lineChart"),{
+
+type:"line",
+
+data:{
+
+labels:["Week1","Week2","Week3","Week4"],
+
+datasets:[{
+
+label:"AWS Cost",
+
+data:{{ trend|safe }}
+
+}]
+
+}
+
+});
+
+</script>
+
+{% endblock %}

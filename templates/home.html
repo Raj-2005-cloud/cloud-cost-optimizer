@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Cloud Cost Optimizer{% endblock %}
+
+{% block content %}
+
+<div class="text-center mt-5">
+
+    <h1 class="display-4 fw-bold">
+        Cloud Cost Optimizer
+    </h1>
+
+    <p class="lead mt-3">
+        Analyze your AWS resources, detect waste, and reduce your monthly cloud bill intelligently.
+    </p>
+
+    <div class="mt-4">
+
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg me-3">
+            Create Free Account
+        </a>
+
+        <a href="{% url 'login' %}" class="btn btn-outline-dark btn-lg">
+            Sign In
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

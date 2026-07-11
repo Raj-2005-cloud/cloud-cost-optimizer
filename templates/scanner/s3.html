@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h2>S3 Buckets</h2>
+
+<table class="table table-bordered table-hover">
+
+<thead class="table-dark">
+
+<tr>
+    <th>Bucket Name</th>
+    <th>Creation Date</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for bucket in buckets %}
+
+<tr>
+
+<td>{{ bucket.name }}</td>
+<td>{{ bucket.created }}</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="2">No Buckets Found</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<a href="/dashboard/" class="btn btn-secondary">
+Back to Dashboard
+</a>
+
+</div>
+
+{% endblock %}
