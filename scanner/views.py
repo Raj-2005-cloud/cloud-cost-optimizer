@@ -175,6 +175,7 @@ def scan_ec2(request):
         "total_savings": total_savings,
         "score": score,
         "running_count": running_count,
+        "is_mock": is_mock,
     })
 
 
@@ -195,7 +196,9 @@ def scan_s3(request):
     try:
         response = s3.list_buckets()
         bucket_list = response["Buckets"]
+        is_mock = False
     except Exception:
+        is_mock = True
         bucket_list = [
             {
                 "Name": "company-billing-reports-2026",
@@ -249,6 +252,7 @@ def scan_s3(request):
 
     return render(request, "scanner/s3.html", {
         "buckets": buckets,
+        "is_mock": is_mock,
     })
 
 
@@ -269,7 +273,9 @@ def scan_ebs(request):
     try:
         response = ec2.describe_volumes()
         volume_list = response["Volumes"]
+        is_mock = False
     except Exception:
+        is_mock = True
         volume_list = [
             {
                 "VolumeId": "vol-0a6eb9df23a5cfc02",
@@ -322,6 +328,7 @@ def scan_ebs(request):
 
     return render(request, "scanner/ebs.html", {
         "volumes": volumes,
+        "is_mock": is_mock,
     })
 @login_required
 def scan_rds(request):
@@ -329,6 +336,8 @@ def scan_rds(request):
     aws = AWSAccount.objects.filter(user=request.user).first()
     if not aws:
         return redirect("connect_aws")
+
+    is_mock = False
 
     # Get all AWS regions
     try:
@@ -340,6 +349,7 @@ def scan_rds(request):
         )
         regions = ec2.describe_regions()["Regions"]
     except Exception:
+        is_mock = True
         regions = [{"RegionName": aws.region}]
 
     databases = []
@@ -359,6 +369,7 @@ def scan_rds(request):
             response = rds.describe_db_instances()
             db_list = response["DBInstances"]
         except Exception:
+            is_mock = True
             db_list = [
                 {
                     "DBInstanceIdentifier": "prod-customer-db",
@@ -409,14 +420,15 @@ def scan_rds(request):
                     "is_dismissed": is_dismissed,
                 })
         except Exception as e:
-                  print(f"Region: {region_name}")
-                  print("ERROR:", e)
+                   print(f"Region: {region_name}")
+                   print("ERROR:", e)
 
     return render(
         request,
         "scanner/rds.html",
         {
             "databases": databases,
+            "is_mock": is_mock,
         },
     )
 

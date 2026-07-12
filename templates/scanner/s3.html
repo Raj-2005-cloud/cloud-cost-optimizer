@@ -6,6 +6,18 @@
 
 <h2>S3 Buckets</h2>
 
+{% if is_mock %}
+<div class="alert alert-warning shadow-sm mb-4" role="alert">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+        <div>
+            <h5 class="alert-heading mb-1 fw-bold">⚠️ Running in Demo Mode (Simulated Sandbox)</h5>
+            <span>Your AWS credentials could not be verified or the connection failed. The resources shown below are simulated demo data. Connect valid keys on the Connect AWS page to view your live resources.</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <table class="table table-bordered table-hover">
 
 <thead class="table-dark">
