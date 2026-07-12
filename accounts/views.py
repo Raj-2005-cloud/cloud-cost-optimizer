@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
+from recommendations.utils import send_email_alert
 from .forms import AWSAccountForm
 from .models import AWSAccount
 
@@ -53,6 +54,10 @@ def connect_aws(request):
 
             access_key = form.cleaned_data["access_key"]
             secret_key = form.cleaned_data["secret_key"]
+            region = form.cleaned_data.get("region", "ap-south-1")
+            alert_email = form.cleaned_data.get("alert_email", "")
+
+            from django.contrib import messages
 
             try:
 
@@ -71,16 +76,38 @@ def connect_aws(request):
                     defaults={
                         "access_key": access_key,
                         "secret_key": secret_key,
-                        # default region only
-                        "region": "ap-south-1",
+                        "region": region,
+                        "alert_email": alert_email,
                     },
                 )
+                
+                messages.success(request, "Successfully connected to AWS Account!")
 
-                return redirect("dashboard")
+            except Exception:
 
-            except ClientError:
+                # Save anyway and run in simulated sandbox mode
+                AWSAccount.objects.update_or_create(
+                    user=request.user,
+                    defaults={
+                        "access_key": access_key,
+                        "secret_key": secret_key,
+                        "region": region,
+                        "alert_email": alert_email,
+                    },
+                )
+                messages.warning(
+                    request, 
+                    "AWS credentials saved in simulated Demo/Sandbox mode (verification bypassed)."
+                )
 
-                form.add_error(None, "Invalid AWS Credentials")
+            if alert_email:
+                send_email_alert(
+                    alert_email,
+                    "Welcome to Cloud Cost Optimizer",
+                    "Welcome to Cloud Cost Optimizer! You will receive Gmail alerts for active cost recommendations on this email address."
+                )
+
+            return redirect("dashboard")
 
     else:
 

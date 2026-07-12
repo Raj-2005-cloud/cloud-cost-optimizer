@@ -4,23 +4,22 @@
 
 <div class="container mt-4">
 
-<h2 class="mb-4">RDS Resource Scanner</h2>
+<h2>RDS Resource Scanner</h2>
 
 <table class="table table-hover table-bordered">
 
 <thead class="table-dark">
 
 <tr>
-
 <th>Identifier</th>
 <th>Engine</th>
 <th>Class</th>
 <th>Status</th>
-<th>Storage (GB)</th>
-<th>Availability Zone</th>
+<th>Storage</th>
 <th>Region</th>
 <th>Recommendation</th>
-
+<th>Savings</th>
+<th>Actions</th>
 </tr>
 
 </thead>
@@ -32,39 +31,50 @@
 <tr>
 
 <td>{{ db.identifier }}</td>
-
 <td>{{ db.engine }}</td>
-
 <td>{{ db.class }}</td>
 
 <td>
-
 <span class="badge bg-{{ db.severity }}">
 {{ db.status }}
 </span>
-
 </td>
 
-<td>{{ db.storage }}</td>
-
-<td>{{ db.az }}</td>
+<td>{{ db.storage }} GB</td>
 
 <td>{{ db.region }}</td>
 
 <td>{{ db.recommendation }}</td>
+
+<td>${{ db.savings }}</td>
+
+<td>
+    {% if db.severity != 'success' and not db.is_dismissed %}
+    <form method="post" action="{% url 'dismiss_resource' 'RDS' db.identifier %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success me-1">It's OK</button>
+    </form>
+    {% endif %}
+    {% if db.status != 'available' %}
+    <form method="post" action="{% url 'delete_rds' db.region db.identifier %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete database {{ db.identifier }}? This cannot be undone.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+    </form>
+    {% else %}
+        {% if db.severity == 'success' or db.is_dismissed %}
+        -
+        {% endif %}
+    {% endif %}
+</td>
 
 </tr>
 
 {% empty %}
 
 <tr>
-
-<td colspan="8" class="text-center">
-
+<td colspan="9">
 No RDS databases found.
-
 </td>
-
 </tr>
 
 {% endfor %}
@@ -72,6 +82,10 @@ No RDS databases found.
 </tbody>
 
 </table>
+
+<a href="/dashboard/" class="btn btn-secondary">
+Back to Dashboard
+</a>
 
 </div>
 

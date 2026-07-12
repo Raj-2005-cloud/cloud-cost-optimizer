@@ -2,7 +2,7 @@ import boto3
 
 from datetime import datetime, timedelta
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from accounts.models import AWSAccount
@@ -11,7 +11,9 @@ from accounts.models import AWSAccount
 @login_required
 def cost_dashboard(request):
 
-    aws = AWSAccount.objects.get(user=request.user)
+    aws = AWSAccount.objects.filter(user=request.user).first()
+    if not aws:
+        return redirect("connect_aws")
 
     ce = boto3.client(
         "ce",

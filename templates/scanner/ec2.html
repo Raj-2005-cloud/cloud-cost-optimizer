@@ -21,7 +21,7 @@
 <div class="card shadow text-center">
 <div class="card-body">
 <h6>Potential Savings</h6>
-<h2>₹{{ total_savings }}</h2>
+<h2>${{ total_savings }}</h2>
 </div>
 </div>
 </div>
@@ -39,13 +39,7 @@
 <div class="card shadow text-center">
 <div class="card-body">
 <h6>Running Instances</h6>
-<h2>
-{% for i in instances %}
-{% if i.state == "running" %}
-🟢
-{% endif %}
-{% endfor %}
-</h2>
+<h2><span class="badge bg-success">🟢 {{ running_count }}</span></h2>
 </div>
 </div>
 </div>
@@ -67,6 +61,7 @@
 <th>AZ</th>
 <th>Recommendation</th>
 <th>Savings</th>
+<th>Actions</th>
 </tr>
 
 </thead>
@@ -120,11 +115,35 @@
 <td>
 
 {% if i.savings > 0 %}
-₹{{ i.savings }}/month
+${{ i.savings }}/month
 {% else %}
 -
 {% endif %}
 
+</td>
+
+<td>
+{% if i.severity != 'success' and not i.is_dismissed %}
+<form method="post" action="{% url 'dismiss_resource' 'EC2' i.id %}" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-success me-1">It's OK</button>
+</form>
+{% endif %}
+{% if i.state == "running" %}
+<form method="post" action="{% url 'stop_ec2' i.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to stop EC2 instance {{ i.name }} ({{ i.id }})?');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-danger">Stop</button>
+</form>
+{% elif i.state == "stopped" %}
+<form method="post" action="{% url 'terminate_ec2' i.id %}" style="display:inline;" onsubmit="return confirm('WARNING: Terminating EC2 instance {{ i.name }} ({{ i.id }}) will permanently delete it and cannot be undone! Are you sure you want to proceed?');">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-danger">Terminate</button>
+</form>
+{% else %}
+    {% if i.severity == 'success' or i.is_dismissed %}
+    -
+    {% endif %}
+{% endif %}
 </td>
 
 </tr>

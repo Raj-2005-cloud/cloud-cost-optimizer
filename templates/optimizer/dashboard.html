@@ -7,7 +7,7 @@
 <div class="card mb-4">
     <div class="card-body">
         <h3>Total Potential Savings</h3>
-        <h1 class="text-success">₹{{ total }}</h1>
+        <h1 class="text-success">${{ total }}</h1>
     </div>
 </div>
 
@@ -49,7 +49,7 @@
 {% endif %}
 
 </td>
-    <td>₹{{ r.savings }}</td>
+    <td>${{ r.savings }}</td>
 </tr>
 
 {% endfor %}

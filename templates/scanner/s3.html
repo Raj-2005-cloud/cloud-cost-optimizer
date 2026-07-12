@@ -13,6 +13,10 @@
 <tr>
     <th>Bucket Name</th>
     <th>Creation Date</th>
+    <th>Files</th>
+    <th>Recommendation</th>
+    <th>Savings</th>
+    <th>Actions</th>
 </tr>
 
 </thead>
@@ -24,14 +28,38 @@
 <tr>
 
 <td>{{ bucket.name }}</td>
+
 <td>{{ bucket.created }}</td>
+
+<td><span class="badge bg-secondary">{{ bucket.file_count }}</span></td>
+
+<td>
+    <span class="badge bg-{{ bucket.severity }}">
+        {{ bucket.recommendation }}
+    </span>
+</td>
+
+<td>${{ bucket.savings }}</td>
+
+<td>
+    {% if bucket.severity != 'success' and not bucket.is_dismissed %}
+    <form method="post" action="{% url 'dismiss_resource' 'S3' bucket.name %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-success me-1">It's OK</button>
+    </form>
+    {% endif %}
+    <form method="post" action="{% url 'delete_s3' bucket.name %}" style="display:inline;" onsubmit="return confirm('WARNING: S3 bucket \'{{ bucket.name }}\' contains {{ bucket.file_count }} file(s).\n\nAre you sure you want to permanently delete this bucket and all the files inside it? This action CANNOT be undone.');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+    </form>
+</td>
 
 </tr>
 
 {% empty %}
 
 <tr>
-<td colspan="2">No Buckets Found</td>
+<td colspan="6">No Buckets Found</td>
 </tr>
 
 {% endfor %}

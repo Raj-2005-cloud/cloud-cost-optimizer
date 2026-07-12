@@ -13,4 +13,5 @@ urlpatterns = [
     path("scanner/", include("scanner.urls")),
     path("billing/", include("billing.urls")),
     path("optimizer/", include("optimizer.urls")),
+    path("reports/", include("reports.urls")), 
 ]

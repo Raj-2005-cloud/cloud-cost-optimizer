@@ -1,6 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.models import AWSAccount
+from recommendations.utils import (
+    analyze_ec2,
+    analyze_ebs,
+    analyze_s3,
+    analyze_rds,
+)
 
 import boto3
 from datetime import datetime, timedelta
@@ -29,7 +35,7 @@ def analytics(request):
     aws = AWSAccount.objects.filter(user=request.user).first()
 
     if not aws:
-        return render(request, "dashboard/analytics.html")
+        return redirect("connect_aws")
 
     access_key = aws.access_key
     secret_key = aws.secret_key
@@ -46,7 +52,10 @@ def analytics(request):
         region_name=region,
     )
 
-    reservations = ec2.describe_instances()["Reservations"]
+    try:
+        reservations = ec2.describe_instances()["Reservations"]
+    except Exception:
+        reservations = []
 
     ec2_count = sum(len(r["Instances"]) for r in reservations)
 
@@ -61,13 +70,23 @@ def analytics(request):
         region_name=region,
     )
 
-    bucket_count = len(s3.list_buckets()["Buckets"])
+    try:
+        buckets = s3.list_buckets()["Buckets"]
+    except Exception:
+        buckets = []
+
+    bucket_count = len(buckets)
 
     # ==========================
     # EBS
     # ==========================
 
-    ebs_count = len(ec2.describe_volumes()["Volumes"])
+    try:
+        volumes = ec2.describe_volumes()["Volumes"]
+    except Exception:
+        volumes = []
+
+    ebs_count = len(volumes)
 
     # ==========================
     # RDS
@@ -81,9 +100,11 @@ def analytics(request):
     )
 
     try:
-        rds_count = len(rds.describe_db_instances()["DBInstances"])
+        databases = rds.describe_db_instances()["DBInstances"]
     except Exception:
-        rds_count = 0
+        databases = []
+
+    rds_count = len(databases)
 
     # ==========================
     # TOTAL RESOURCES
@@ -110,74 +131,131 @@ def analytics(request):
     end = datetime.utcnow().date()
     start = end - timedelta(days=30)
 
-    response = ce.get_cost_and_usage(
-        TimePeriod={
-            "Start": str(start),
-            "End": str(end),
-        },
-        Granularity="MONTHLY",
-        Metrics=["UnblendedCost"],
-        GroupBy=[
-            {
-                "Type": "DIMENSION",
-                "Key": "SERVICE",
-            }
-        ],
-    )
-
     pie_labels = []
     pie_values = []
-
     total_cost = 0
 
-    for group in response["ResultsByTime"][0]["Groups"]:
-
-        service = group["Keys"][0]
-        cost = round(
-            float(group["Metrics"]["UnblendedCost"]["Amount"]),
-            2,
+    try:
+        response = ce.get_cost_and_usage(
+            TimePeriod={
+                "Start": str(start),
+                "End": str(end),
+            },
+            Granularity="MONTHLY",
+            Metrics=["UnblendedCost"],
+            GroupBy=[
+                {
+                    "Type": "DIMENSION",
+                    "Key": "SERVICE",
+                }
+            ],
         )
 
-        pie_labels.append(service)
-        pie_values.append(cost)
+        for group in response["ResultsByTime"][0]["Groups"]:
 
-        total_cost += cost
+            service = group["Keys"][0]
+            cost = round(
+                float(group["Metrics"]["UnblendedCost"]["Amount"]),
+                2,
+            )
+
+            pie_labels.append(service)
+            pie_values.append(cost)
+
+            total_cost += cost
+    except Exception:
+        pass
 
     # ==========================
     # DASHBOARD METRICS
     # ==========================
 
-    savings = 250
-    score = 92
+    recommendations = []
+    savings = 0
+
+    # ==========================
+    # EC2 Recommendations
+    # ==========================
+
+    for reservation in reservations:
+        for instance in reservation["Instances"]:
+
+            analysis = analyze_ec2({
+                "state": instance["State"]["Name"],
+                "cpu": 0,
+            })
+
+            if analysis["savings"] > 0:
+                recommendations.append({
+                    "service": "EC2",
+                    "text": analysis["recommendation"],
+                    "savings": analysis["savings"],
+                })
+                savings += analysis["savings"]
+
+    # ==========================
+    # EBS Recommendations
+    # ==========================
+
+    for volume in volumes:
+
+        analysis = analyze_ebs({
+            "attached": len(volume["Attachments"]) > 0,
+        })
+
+        if analysis["savings"] > 0:
+            recommendations.append({
+                "service": "EBS",
+                "text": analysis["recommendation"],
+                "savings": analysis["savings"],
+            })
+            savings += analysis["savings"]
+
+    # ==========================
+    # S3 Recommendations
+    # ==========================
+
+    for bucket in buckets:
+
+        analysis = analyze_s3(bucket)
+
+        if analysis["savings"] > 0:
+            recommendations.append({
+                "service": "S3",
+                "text": analysis["recommendation"],
+                "savings": analysis["savings"],
+            })
+            savings += analysis["savings"]
+
+    # ==========================
+    # RDS Recommendations
+    # ==========================
+
+    for db in databases:
+
+        analysis = analyze_rds({
+            "status": db["DBInstanceStatus"],
+        })
+
+        if analysis["savings"] > 0:
+            recommendations.append({
+                "service": "RDS",
+                "text": analysis["recommendation"],
+                "savings": analysis["savings"],
+            })
+            savings += analysis["savings"]
+
+    # ==========================
+    # Optimization Score
+    # ==========================
+
+    score = max(100 - len(recommendations) * 10, 0)
 
     trend = [
         total_cost,
         total_cost,
         total_cost,
         total_cost,
-    ]
-
-    recommendations = [
-        {
-            "service": "EC2",
-            "text": "Stop idle EC2 instances",
-            "savings": 120,
-        },
-        {
-            "service": "EBS",
-            "text": "Delete unattached EBS volumes",
-            "savings": 60,
-        },
-        {
-            "service": "S3",
-            "text": "Enable Intelligent Tiering",
-            "savings": 40,
-        },
-        {
-            "service": "RDS",
-            "text": "Resize idle database",
-            "savings": 30,
-        },
     ]
 
     return render(

@@ -1,6 +1,6 @@
 import boto3
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 from accounts.models import AWSAccount
@@ -15,7 +15,9 @@ from optimizer.utils import (
 @login_required
 def recommendations(request):
 
-    aws = AWSAccount.objects.get(user=request.user)
+    aws = AWSAccount.objects.filter(user=request.user).first()
+    if not aws:
+        return redirect("connect_aws")
 
     recommendations = []
 

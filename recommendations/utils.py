@@ -1,62 +1,92 @@
 def analyze_ec2(instance):
 
-    state = instance["state"]
     cpu = instance["cpu"]
+    state = instance["state"]
 
-    recommendation = "Healthy"
-    savings = 0
-    severity = "success"
+    if state == "stopped":
+        return {
+            "recommendation": "Terminate unused instance",
+            "severity": "warning",
+            "savings": 15,
+        }
 
-    # -----------------------------
-    # TERMINATED
-    # -----------------------------
-    if state == "terminated":
-        recommendation = "Already terminated."
-        severity = "secondary"
+    elif state == "running" and cpu < 5:
+        return {
+            "recommendation": "Stop idle instance",
+            "severity": "warning",
+            "savings": 25,
+        }
 
-    # -----------------------------
-    # STOPPED
-    # -----------------------------
-    elif state == "stopped":
-        recommendation = "Delete if not required."
-        savings = 150
-        severity = "warning"
+    else:
+        return {
+            "recommendation": "Instance is healthy",
+            "severity": "success",
+            "savings": 0,
+        }
 
-    # -----------------------------
-    # RUNNING
-    # -----------------------------
-    elif state == "running":
 
-        if cpu <= 5:
-            recommendation = (
-                "Very low CPU usage. Stop or resize this EC2 instance."
-            )
-            savings = 400
-            severity = "danger"
+def analyze_ebs(volume):
 
-        elif cpu <= 20:
-            recommendation = (
-                "Low CPU usage. Consider downsizing."
-            )
-            savings = 200
-            severity = "warning"
-
-        elif cpu <= 60:
-            recommendation = (
-                "Healthy utilization."
-            )
-            savings = 0
-            severity = "success"
-
-        else:
-            recommendation = (
-                "High CPU utilization. Upgrade instance if performance is affected."
-            )
-            savings = 0
-            severity = "primary"
+    if not volume["attached"]:
+        return {
+            "recommendation": "Delete unattached EBS volume",
+            "severity": "warning",
+            "savings": 8,
+        }
 
     return {
-        "recommendation": recommendation,
-        "savings": savings,
-        "severity": severity,
+        "recommendation": "Volume is healthy",
+        "severity": "success",
+        "savings": 0,
     }
+
+
+def analyze_s3(bucket):
+
+    return {
+        "recommendation": "Enable Intelligent Tiering",
+        "severity": "info",
+        "savings": 3,
+    }
+
+
+def analyze_rds(db):
+
+    if db["status"] != "available":
+        return {
+            "recommendation": "Review database status",
+            "severity": "warning",
+            "savings": 0,
+        }
+
+    return {
+        "recommendation": "Database is healthy",
+        "severity": "success",
+        "savings": 0,
+    }
+
+
+def send_email_alert(to_email, subject, message):
+    if not to_email:
+        return
+    print(f"\n==========================================")
+    print(f"[EMAIL] SIMULATED EMAIL SENT TO: {to_email}")
+    print(f"Subject: {subject}")
+    print(f"Message: {message}")
+    print(f"==========================================\n")
+
+    # Optional real SMTP sending if credentials provided
+    from django.core.mail import send_mail
+    from django.conf import settings
+    if getattr(settings, 'EMAIL_HOST_USER', None):
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.EMAIL_HOST_USER,
+                [to_email],
+                fail_silently=False,
+            )
+            print(f"Real email alert dispatched to {to_email} via Gmail SMTP.")
+        except Exception as e:
+            print(f"Failed to dispatch Gmail email: {e}")
